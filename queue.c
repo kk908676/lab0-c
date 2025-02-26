@@ -18,7 +18,6 @@ struct list_head *q_new()
     if (!queue) {
         return NULL;
     }
-    queue->q = (struct list_head *) malloc(sizeof(struct list_head));
     queue->q = &queue->chain;
     queue->chain.prev = &queue->chain;
     queue->chain.next = &queue->chain;
@@ -39,10 +38,14 @@ void q_free(struct list_head *head)
     while (cur != head) {
         struct list_head *temp = cur;
         cur = cur->next;
-        free(temp);
+
+        element_t *item = container_of(temp, element_t, list);
+        free(item->value);
+        free(item);
     }
 
-    free(head);
+    queue_contex_t *queue = container_of(head, queue_contex_t, chain);
+    free(queue);
 }
 
 /* Insert an element at head of queue */
