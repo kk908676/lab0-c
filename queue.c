@@ -164,7 +164,34 @@ int q_size(struct list_head *head)
 /* Delete the middle node in queue */
 bool q_delete_mid(struct list_head *head)
 {
-    // https://leetcode.com/problems/delete-the-middle-node-of-a-linked-list/
+    struct list_head *temp = head;
+
+    int count = q_size(head);
+    if (count == 0)
+        return false;
+    else if (count == 1) {
+        element_t *re_item = q_remove_head(temp, NULL, 0);
+        free(re_item->value);
+        free(re_item);
+    } else if (count == 2) {
+        element_t *re_item = q_remove_tail(temp, NULL, 0);
+        free(re_item->value);
+        free(re_item);
+    } else {
+        count = count / 2 + 1;
+        while (count != 1) {
+            temp = temp->next;
+            count -= 1;
+        }
+        element_t *re_item = container_of(temp->next, element_t, list);
+
+        temp->next->next->prev = temp;
+        temp->next = temp->next->next;
+
+        free(re_item->value);
+        free(re_item);
+    }
+
     return true;
 }
 
@@ -201,16 +228,16 @@ int q_ascend(struct list_head *head)
     return 0;
 }
 
-/* Remove every node which has a node with a strictly greater value anywhere to
- * the right side of it */
+/* Remove every node which has a node with a strictly greater value anywhere
+ * to the right side of it */
 int q_descend(struct list_head *head)
 {
     // https://leetcode.com/problems/remove-nodes-from-linked-list/
     return 0;
 }
 
-/* Merge all the queues into one sorted queue, which is in ascending/descending
- * order */
+/* Merge all the queues into one sorted queue, which is in
+ * ascending/descending order */
 int q_merge(struct list_head *head, bool descend)
 {
     // https://leetcode.com/problems/merge-k-sorted-lists/
