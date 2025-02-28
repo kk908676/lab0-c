@@ -13,18 +13,15 @@
 /* Create an empty queue */
 struct list_head *q_new()
 {
-    queue_contex_t *queue = (queue_contex_t *) malloc(sizeof(queue_contex_t));
+    struct list_head *queue = malloc(sizeof(struct list_head));
 
     if (!queue) {
         return NULL;
     }
-    queue->q = &queue->chain;
-    queue->chain.prev = &queue->chain;
-    queue->chain.next = &queue->chain;
-    queue->size = 0;
-    queue->id = 0;
 
-    return queue->q;
+    INIT_LIST_HEAD(queue);
+
+    return queue;
 }
 
 /* Free all storage used by queue */
@@ -44,8 +41,7 @@ void q_free(struct list_head *head)
         free(item);
     }
 
-    queue_contex_t *queue = container_of(head, queue_contex_t, chain);
-    free(queue);
+    free(head);
 }
 
 /* Insert an element at head of queue */
@@ -283,9 +279,29 @@ void q_reverse(struct list_head *head)
 /* Reverse the nodes of the list k at a time */
 void q_reverseK(struct list_head *head, int k)
 {
-    // https://leetcode.com/problems/reverse-nodes-in-k-group/
-}
+    if (list_empty(head) || q_size(head) == 1 || k == 1)
+        return;
 
+    int count = 0;
+
+    struct list_head *node, *safe;
+    struct list_head *temp = head;
+
+    list_for_each_safe (node, safe, head) {
+        count++;
+        if (count == k) {
+            struct list_head head_to;
+            INIT_LIST_HEAD(&head_to);
+
+            list_cut_position(&head_to, temp, node);
+            q_reverse(&head_to);
+            list_splice_init(&head_to, temp);
+
+            temp = safe->prev;
+            count = 0;
+        }
+    }
+}
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
