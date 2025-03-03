@@ -96,12 +96,7 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
     struct list_head *remove = head->next;
     element_t *re_item = container_of(remove, element_t, list);
 
-    head->next = head->next->next;
-    if (head->next == head)
-        head->prev = head;
-    else {
-        head->next->prev = head;
-    }
+    list_del(remove);
 
     if (sp != NULL) {
         strncpy(sp, re_item->value, bufsize - 1);
@@ -114,17 +109,13 @@ element_t *q_remove_head(struct list_head *head, char *sp, size_t bufsize)
 /* Remove an element from tail of queue */
 element_t *q_remove_tail(struct list_head *head, char *sp, size_t bufsize)
 {
-    if (!head)
+    if (!head || list_empty(head))
         return NULL;
 
     struct list_head *remove = head->prev;
     element_t *re_item = container_of(remove, element_t, list);
 
-    head->prev = head->prev->prev;
-    if (head->prev == head)
-        head->next = head;
-    else
-        head->prev->next = head;
+    list_del(remove);
 
     if (sp != NULL) {
         strncpy(sp, re_item->value, bufsize - 1);
