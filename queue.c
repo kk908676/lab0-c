@@ -154,30 +154,23 @@ bool q_delete_mid(struct list_head *head)
     struct list_head *temp = head;
 
     int count = q_size(head);
-    if (count == 0)
+    if (!head)
         return false;
-    else if (count == 1) {
-        element_t *re_item = q_remove_head(temp, NULL, 0);
-        free(re_item->value);
-        free(re_item);
-    } else if (count == 2) {
-        element_t *re_item = q_remove_tail(temp, NULL, 0);
-        free(re_item->value);
-        free(re_item);
-    } else {
-        count = count / 2 + 1;
-        while (count != 1) {
-            temp = temp->next;
-            count -= 1;
-        }
-        element_t *re_item = container_of(temp->next, element_t, list);
+    if (list_empty(head))
+        return true;
 
-        temp->next->next->prev = temp;
-        temp->next = temp->next->next;
-
-        free(re_item->value);
-        free(re_item);
+    count = count / 2 + 1;
+    while (count != 1) {
+        temp = temp->next;
+        count -= 1;
     }
+    element_t *re_item = container_of(temp->next, element_t, list);
+
+    temp->next->next->prev = temp;
+    temp->next = temp->next->next;
+
+    free(re_item->value);
+    free(re_item);
 
     return true;
 }
