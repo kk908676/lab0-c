@@ -10,6 +10,8 @@
  *   cppcheck-suppress nullPointer
  */
 
+void merge_two_list(struct list_head *L1, struct list_head *L2);
+
 /* Create an empty queue */
 struct list_head *q_new()
 {
@@ -288,35 +290,24 @@ void q_reverseK(struct list_head *head, int k)
 /* Sort elements of queue in ascending/descending order */
 void q_sort(struct list_head *head, bool descend)
 {
-    int count = q_size(head);
-    if (count == 0 || count == 1)
+    if (!head || list_empty(head) || list_is_singular(head))
         return;
 
-    for (int i = count; i > 0; i--) {
-        struct list_head *cur = head;
-        struct list_head *temp = head->next->next->next;
-        for (int j = 0; j < i - 1; j++) {
-            element_t *node1 = container_of(cur->next, element_t, list);
-            element_t *node2 = container_of(cur->next->next, element_t, list);
+    struct list_head *fast = head->next;
+    struct list_head *slow = head;
 
-            if (strcmp(node1->value, node2->value) > 0) {
-                cur->next = &node2->list;
-                temp->prev = &node1->list;
-
-                node2->list.next = &node1->list;
-                node2->list.prev = cur;
-                node1->list.next = temp;
-                node1->list.prev = &node2->list;
-            }
-
-            cur = cur->next;
-            temp = temp->next;
-        }
+    while (fast != head && fast->next != head) {
+        slow = slow->next;
+        fast = fast->next->next;
     }
 
-    if (descend) {
-        q_reverse(head);
-    }
+    struct list_head half;
+    INIT_LIST_HEAD(&half);
+    list_cut_position(&half, head, slow);
+
+    q_sort(&half, descend);
+    q_sort(head, descend);
+    merge_two_list(head, &half);
 }
 
 /* Remove every node which has a node with a strictly less value anywhere to
@@ -412,4 +403,27 @@ int q_merge(struct list_head *head, bool descend)
 
     q_sort(q_head->q, descend);
     return q_head->size;
+}
+
+void merge_two_list(struct list_head *L1, struct list_head *L2)
+{
+    struct list_head temp;
+    INIT_LIST_HEAD(&temp);
+
+    while (!list_empty(L1) && !list_empty(L2)) {
+        element_t *node1 = container_of(L1->next, element_t, list);
+        element_t *node2 = container_of(L2->next, element_t, list);
+        if (strcmp(node1->value, node2->value) < 0) {
+            list_move_tail(&node1->list, &temp);
+        } else {
+            list_move_tail(&node2->list, &temp);
+        }
+    }
+
+    if (!list_empty(L1))
+        list_splice_tail_init(L1, &temp);
+    else
+        list_splice_tail_init(L2, &temp);
+
+    list_splice(&temp, L1);
 }
